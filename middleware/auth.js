@@ -30,8 +30,13 @@ const auth = async (req, res, next) => {
 
 const authorize = (...roles) => {
   return (req, res, next) => {
+    if (!req.user || !req.user.role) {
+      return res.status(403).json({ message: 'Access denied: No user role found' });
+    }
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Access denied' });
+      return res.status(403).json({ 
+        message: `Access denied: Required role(s): ${roles.join(', ')}, but user has role: ${req.user.role}` 
+      });
     }
     next();
   };
