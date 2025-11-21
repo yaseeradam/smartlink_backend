@@ -22,14 +22,7 @@ router.put('/profile', auth, async (req, res) => {
       { new: true, runValidators: true }
     ).select('-password');
 
-    const userObj = user.toObject();
-    if (userObj.avatar && !userObj.avatar.startsWith('http')) {
-      const protocol = req.protocol;
-      const host = req.get('host');
-      userObj.avatar = `${protocol}://${host}${userObj.avatar.startsWith('/') ? '' : '/'}${userObj.avatar}`;
-    }
-
-    res.json({ success: true, user: userObj });
+    res.json({ success: true, user: user.toObject() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -45,14 +38,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const userObj = user.toObject();
-    if (userObj.avatar && !userObj.avatar.startsWith('http')) {
-      const protocol = req.protocol;
-      const host = req.get('host');
-      userObj.avatar = `${protocol}://${host}${userObj.avatar.startsWith('/') ? '' : '/'}${userObj.avatar}`;
-    }
-
-    res.json({ success: true, user: userObj });
+    res.json({ success: true, user: user.toObject() });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
