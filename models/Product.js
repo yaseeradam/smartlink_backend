@@ -18,7 +18,15 @@ const productSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ['electronics', 'fashion', 'food', 'home', 'books', 'sports', 'beauty', 'automotive']
+    enum: [
+      'electronics', 'fashion', 'food', 'home', 'books', 'sports', 'beauty', 'automotive',
+      'phones', 'computers', 'furniture', 'appliances', 'toys', 'jewelry', 'health',
+      'groceries', 'pets', 'garden', 'tools', 'music', 'art', 'baby', 'office', 'others'
+    ]
+  },
+  customCategory: {
+    type: String,
+    trim: true
   },
   images: [{
     type: String,
