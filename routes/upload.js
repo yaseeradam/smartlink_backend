@@ -16,11 +16,13 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedExtensions = /\.(jpg|jpeg|png|gif|webp)$/i;
     
-    if (allowedMimeTypes.includes(file.mimetype)) {
+    // Check MIME type or file extension
+    if (allowedMimeTypes.includes(file.mimetype) || allowedExtensions.test(file.originalname)) {
       return cb(null, true);
     } else {
-      cb(new Error(`Only image files are allowed. Received: ${file.mimetype}`));
+      cb(new Error(`Only image files are allowed. Received: ${file.mimetype} (${file.originalname})`));
     }
   }
 });
