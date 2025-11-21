@@ -68,7 +68,11 @@ const createProduct = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array() 
+      });
     }
 
     const productData = {
@@ -81,7 +85,12 @@ const createProduct = async (req, res) => {
 
     res.status(201).json({ success: true, product });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error creating product:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message,
+      details: error.name === 'ValidationError' ? error.errors : undefined
+    });
   }
 };
 
