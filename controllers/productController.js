@@ -68,17 +68,31 @@ const createProduct = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
         message: 'Validation failed',
-        errors: errors.array() 
+        errors: errors.array()
       });
     }
 
+    // Handle field name mismatches between frontend and backend
     const productData = {
-      ...req.body,
-      seller: req.user.id
+      name: req.body.name || req.body.title, // frontend sends 'title'
+      description: req.body.description,
+      price: req.body.price,
+      category: req.body.category,
+      customCategory: req.body.customCategory, // for 'others' category
+      images: req.body.images,
+      stock: req.body.stock || req.body.stockQuantity, // frontend sends 'stockQuantity'
+      seller: req.user.id,
+      // Include any other optional fields
+      specifications: req.body.specifications || [],
+      tags: req.body.tags || [],
+      weight: req.body.weight,
+      dimensions: req.body.dimensions
     };
+
+    console.log('Creating product with data:', productData);
 
     const product = await Product.create(productData);
     await product.populate('seller', 'name businessName');
@@ -86,7 +100,7 @@ const createProduct = async (req, res) => {
     res.status(201).json({ success: true, product });
   } catch (error) {
     console.error('Error creating product:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       message: error.message,
       details: error.name === 'ValidationError' ? error.errors : undefined

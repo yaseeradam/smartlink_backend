@@ -23,11 +23,13 @@ router.get('/seller/my-products', auth, authorize('seller'), getSellerProducts);
 
 // Create product (sellers only)
 router.post('/', auth, authorize('seller'), [
-  body('name').notEmpty().withMessage('Product name is required'),
+  body('title').optional().notEmpty().withMessage('Product title is required'),
+  body('name').optional().notEmpty().withMessage('Product name is required'),
   body('description').notEmpty().withMessage('Description is required'),
   body('price').isNumeric().withMessage('Price must be a number'),
   body('category').notEmpty().withMessage('Category is required'),
-  body('stock').isNumeric().withMessage('Stock must be a number'),
+  body('stock').optional().isNumeric().withMessage('Stock must be a number'),
+  body('stockQuantity').optional().isNumeric().withMessage('Stock quantity must be a number'),
   body('images').isArray({ min: 1 }).withMessage('At least one image is required')
 ], createProduct);
 
