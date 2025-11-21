@@ -44,13 +44,42 @@ router.post('/single', auth, upload.single('image'), (req, res) => {
       });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
     
     res.json({
       success: true,
       message: 'File uploaded successfully',
       fileUrl: fileUrl,
       filename: req.file.filename
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      message: error.message 
+    });
+  }
+});
+
+// Multiple files upload
+router.post('/multiple', auth, upload.array('images', 5), (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No files uploaded' 
+      });
+    }
+
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const fileUrls = req.files.map(file => `${protocol}://${host}/uploads/${file.filename}`);
+    
+    res.json({
+      success: true,
+      message: 'Files uploaded successfully',
+      fileUrls: fileUrls
     });
   } catch (error) {
     res.status(500).json({ 

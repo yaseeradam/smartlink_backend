@@ -50,22 +50,30 @@ const register = async (req, res) => {
     const user = await User.create(userData);
     const token = generateToken(user._id);
 
+    const userResponse = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      location: user.location,
+      avatar: user.avatar,
+      bio: user.bio,
+      isVerified: user.isVerified,
+      businessName: user.businessName,
+      vehicleType: user.vehicleType
+    };
+
+    if (userResponse.avatar && !userResponse.avatar.startsWith('http')) {
+      const protocol = req.protocol;
+      const host = req.get('host');
+      userResponse.avatar = `${protocol}://${host}${userResponse.avatar.startsWith('/') ? '' : '/'}${userResponse.avatar}`;
+    }
+
     res.status(201).json({
       success: true,
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        location: user.location,
-        avatar: user.avatar,
-        bio: user.bio,
-        isVerified: user.isVerified,
-        businessName: user.businessName,
-        vehicleType: user.vehicleType
-      }
+      user: userResponse
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -95,22 +103,30 @@ const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
+    const userResponse = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      location: user.location,
+      avatar: user.avatar,
+      bio: user.bio,
+      isVerified: user.isVerified,
+      businessName: user.businessName,
+      vehicleType: user.vehicleType
+    };
+
+    if (userResponse.avatar && !userResponse.avatar.startsWith('http')) {
+      const protocol = req.protocol;
+      const host = req.get('host');
+      userResponse.avatar = `${protocol}://${host}${userResponse.avatar.startsWith('/') ? '' : '/'}${userResponse.avatar}`;
+    }
+
     res.json({
       success: true,
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        location: user.location,
-        avatar: user.avatar,
-        bio: user.bio,
-        isVerified: user.isVerified,
-        businessName: user.businessName,
-        vehicleType: user.vehicleType
-      }
+      user: userResponse
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

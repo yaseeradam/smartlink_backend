@@ -18,9 +18,19 @@ const getProducts = async (req, res) => {
 
     const total = await Product.countDocuments(query);
 
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const productsWithFullUrls = products.map(product => {
+      const productObj = product.toObject();
+      productObj.images = productObj.images.map(img => 
+        img.startsWith('http') ? img : `${protocol}://${host}${img.startsWith('/') ? '' : '/'}${img}`
+      );
+      return productObj;
+    });
+
     res.json({
       success: true,
-      products,
+      products: productsWithFullUrls,
       pagination: {
         page: parseInt(page),
         pages: Math.ceil(total / limit),
@@ -41,7 +51,14 @@ const getProduct = async (req, res) => {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    res.json({ success: true, product });
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const productObj = product.toObject();
+    productObj.images = productObj.images.map(img => 
+      img.startsWith('http') ? img : `${protocol}://${host}${img.startsWith('/') ? '' : '/'}${img}`
+    );
+
+    res.json({ success: true, product: productObj });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -116,7 +133,17 @@ const getSellerProducts = async (req, res) => {
     const products = await Product.find({ seller: req.user.id })
       .sort({ createdAt: -1 });
     
-    res.json({ success: true, products });
+    const protocol = req.protocol;
+    const host = req.get('host');
+    const productsWithFullUrls = products.map(product => {
+      const productObj = product.toObject();
+      productObj.images = productObj.images.map(img => 
+        img.startsWith('http') ? img : `${protocol}://${host}${img.startsWith('/') ? '' : '/'}${img}`
+      );
+      return productObj;
+    });
+    
+    res.json({ success: true, products: productsWithFullUrls });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
