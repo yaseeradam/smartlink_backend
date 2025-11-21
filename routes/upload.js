@@ -70,14 +70,22 @@ router.post('/multiple', auth, upload.array('images', 5), async (req, res) => {
       });
     }
 
+    console.log(`Uploading ${req.files.length} files to Cloudinary`);
+
     // Upload all files to Cloudinary
-    const uploadPromises = req.files.map(file => {
+    const uploadPromises = req.files.map((file, index) => {
       return new Promise((resolve, reject) => {
+        console.log(`Uploading file ${index + 1}: ${file.originalname}`);
         cloudinary.uploader.upload_stream(
           { folder: 'smartlink' },
           (error, result) => {
-            if (error) reject(error);
-            else resolve(result.secure_url);
+            if (error) {
+              console.error(`Upload error for file ${index + 1}:`, error);
+              reject(error);
+            } else {
+              console.log(`File ${index + 1} uploaded: ${result.secure_url}`);
+              resolve(result.secure_url);
+            }
           }
         ).end(file.buffer);
       });
@@ -91,9 +99,10 @@ router.post('/multiple', auth, upload.array('images', 5), async (req, res) => {
       fileUrls: fileUrls
     });
   } catch (error) {
+    console.error('Upload error:', error);
     res.status(500).json({ 
       success: false, 
-      message: error.message 
+      message: error.message || 'Upload failed'
     });
   }
 });
