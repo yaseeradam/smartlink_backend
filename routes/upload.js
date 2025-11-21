@@ -2,19 +2,12 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const { auth } = require('../middleware/auth');
+const cloudinary = require('../config/cloudinary');
 
 const router = express.Router();
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer for memory storage
+const storage = multer.memoryStorage();
 
 const upload = multer({ 
   storage: storage,
@@ -35,7 +28,7 @@ const upload = multer({
 });
 
 // Single file upload
-router.post('/single', auth, upload.single('image'), (req, res) => {
+router.post('/single', auth, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ 
@@ -44,15 +37,22 @@ router.post('/single', auth, upload.single('image'), (req, res) => {
       });
     }
 
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+    // Upload to Cloudinary
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        { folder: 'smartlink' },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
+    });
     
     res.json({
       success: true,
       message: 'File uploaded successfully',
-      fileUrl: fileUrl,
-      filename: req.file.filename
+      fileUrl: result.secure_url,
+      filename: result.public_id
     });
   } catch (error) {
     res.status(500).json({ 
@@ -63,7 +63,7 @@ router.post('/single', auth, upload.single('image'), (req, res) => {
 });
 
 // Multiple files upload
-router.post('/multiple', auth, upload.array('images', 5), (req, res) => {
+router.post('/multiple', auth, upload.array('images', 5), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ 
@@ -72,9 +72,20 @@ router.post('/multiple', auth, upload.array('images', 5), (req, res) => {
       });
     }
 
-    const protocol = req.protocol;
-    const host = req.get('host');
-    const fileUrls = req.files.map(file => `${protocol}://${host}/uploads/${file.filename}`);
+    // Upload all files to Cloudinary
+    const uploadPromises = req.files.map(file => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          { folder: 'smartlink' },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result.secure_url);
+          }
+        ).end(file.buffer);
+      });
+    });
+
+    const fileUrls = await Promise.all(uploadPromises);
     
     res.json({
       success: true,
