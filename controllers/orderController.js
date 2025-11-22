@@ -2,6 +2,20 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
 
+// Socket.io store for real-time notifications
+let io;
+
+const initializeSocketIO = (socketIO) => {
+  io = socketIO;
+};
+
+// Helper function to emit real-time notifications
+const emitNotification = (userId, eventName, data) => {
+  if (io) {
+    io.to(userId).emit(eventName, data);
+  }
+};
+
 const createOrder = async (req, res) => {
   try {
     const { items, deliveryAddress, paymentMethod, notes } = req.body;
@@ -53,6 +67,14 @@ const createOrder = async (req, res) => {
       { path: 'seller', select: 'name businessName phone' },
       { path: 'items.product', select: 'name price images' }
     ]);
+
+    // Send real-time notification to seller
+    emitNotification(firstProduct.seller.toString(), 'newOrder', {
+      order: order,
+      message: `New order #${order._id.toString().substring(0, 8)} received`,
+      buyerName: order.buyer.name,
+      totalAmount: order.totalAmount
+    });
 
     res.status(201).json({ success: true, order });
   } catch (error) {
@@ -187,5 +209,6 @@ module.exports = {
   getOrders,
   getOrder,
   updateOrderStatus,
-  assignRider
+  assignRider,
+  initializeSocketIO
 };

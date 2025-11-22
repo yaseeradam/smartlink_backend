@@ -4,7 +4,8 @@ const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
     unique: true,
-    required: true
+    required: false,
+    default: ''
   },
   buyer: {
     type: mongoose.Schema.Types.ObjectId,

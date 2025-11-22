@@ -9,6 +9,7 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const { initializeSocketIO } = require('./controllers/orderController');
 const riderRoutes = require('./routes/riders');
 const reviewRoutes = require('./routes/reviews');
 const ratingRoutes = require('./routes/ratings');
@@ -97,4 +98,6 @@ const io = require('socket.io')(server, {
   }
 });
 
+// Initialize socketIO in orderController for notifications
+initializeSocketIO(io);
 require('./socket/socketHandler')(io);
